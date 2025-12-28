@@ -41,6 +41,9 @@ INSTALLED_APPS = [
     'employees',
     'api',
     'students',
+    'staff',
+    'blogs',
+    'django_filters'
 ]
 
 MIDDLEWARE = [
@@ -119,3 +122,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+
+REST_FRAMEWORK={
+    
+    "DEFAULT_PAGINATION_CLASS" : "rest_framework.pagination.LimitOffsetPagination",
+    "PAGE_SIZE" : 1, 
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'SEARCH_PARAM':'q',
+    "ORDERING_PARAM":"order_by"
+
+}
