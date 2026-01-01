@@ -19,6 +19,12 @@ from blogs.serializers import BlogsSerializer, CommentSerializer
 from .pagination import CustomPagination
 from blogs.filters import BlogsFilters
 from rest_framework.filters import SearchFilter,OrderingFilter
+from django.contrib.auth.models import User
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import authenticate
+from rest_framework.permissions import AllowAny
+from .serializers import RegisterUserSerializer, LoginUserSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 
 # Create your views here.
 @api_view(["GET","POST"])
@@ -194,8 +200,11 @@ class StaffView(viewsets.ModelViewSet):
 # blogs
 
 class BlogsView(generics.ListCreateAPIView):
+    
     queryset = Blogs.objects.all()
     serializer_class = BlogsSerializer
+    permission_classes = [IsAuthenticated]
+
     filterset_class = BlogsFilters
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['blog_title','blog_content']
@@ -214,3 +223,42 @@ class getComment(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comments.objects.all()
     serializer_class = CommentSerializer
     lookup_field = "pk"
+    
+class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    permission_classes = (AllowAny,)
+    serializer_class = RegisterUserSerializer
+    
+class LoginView(generics.GenericAPIView):
+    serializer_class = LoginUserSerializer
+    
+    def post(self, request, *args,**kwargs):
+        username = request.data.get("username")
+        password = request.data.get("password")
+        user = authenticate(username = username, password = password)
+        
+        if user is not None:
+            refresh = RefreshToken.for_user(user)
+            user_serializer = RegisterUserSerializer(user)
+            return Response({
+                "refresh":str(refresh),
+                "access": str(refresh.access_token),
+                "user": user_serializer.data
+            
+            })
+            
+        else:
+            return Response({"detail":"invalid credentials"})
+        
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            refresh_token = request.data.get("refresh")
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response({"detail": "Logged out successfully"})
+        except Exception:
+            return Response({"detail": "Invalid token"}, status=400)
+        

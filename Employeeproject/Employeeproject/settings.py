@@ -43,7 +43,9 @@ INSTALLED_APPS = [
     'students',
     'staff',
     'blogs',
-    'django_filters'
+    'django_filters',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist'
 ]
 
 MIDDLEWARE = [
@@ -81,10 +83,14 @@ WSGI_APPLICATION = 'Employeeproject.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'djongo',
+        'NAME': 'auth_db',
+        'CLIENT': {
+            'host': 'mongodb://localhost:27017/',
+        }
     }
 }
+
 
 
 # Password validation
@@ -130,6 +136,8 @@ REST_FRAMEWORK={
     "PAGE_SIZE" : 1, 
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'SEARCH_PARAM':'q',
-    "ORDERING_PARAM":"order_by"
-
+    "ORDERING_PARAM":"order_by",
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
 }
